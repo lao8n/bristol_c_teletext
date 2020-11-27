@@ -1,0 +1,168 @@
+/*********************************************************/
+/* testing.txt *******************************************/
+/*********************************************************/
+
+/* How to run the code ***********************************/
+
+In 'testing' directory:
+make all
+make run
+
+Please note that the testing.c file is long (>1000 lines)
+and takes several minutes to run, including lots of
+SDL outputs. You will need to click the screen twice to
+get it to continue (once near the beginning) and once
+right at the end.
+
+/* How I wrote the code **********************************/
+
+First, I just hacked together in one .c file a, roughly,
+working version of the code. I wanted to get experience
+with importing the binary data, seeing how to map the
+codes, trying out different ideas for structuring the data,
+and practice using SDL.
+
+This was useful. For example, my initial idea was to not
+'save' the data in a data structure but instead print the
+data as it was imported. This was fine, except that the
+double height adjustment requires knowing what was
+printed on the line above so I had to scrap this approach.
+
+After, some experience I then started from scratch
+spending many hours planning how I wanted to structure the
+code. I decided upon 3 layers (see below): a base layer,
+a library layer and a user layer with progressively more
+abstracted code. I then wrote the base functions first,
+testing them very thoroughly then once I knew they were
+working I built the library functions on top and then
+tested them very thoroughly.
+
+/* Structure of code *************************************/
+
+The teletext code is structured in 3 layers.
+1. User layer (testing.c or main.c)
+2. Library layer (teletext_library.c & teletext_library.h)
+3. Base layer (teletext_base.c & teletext_base.h)
+
+This structure allows a certain amount of abstraction. For
+example most of the base functions involve directly
+working with the SDL renderer. The library layer, by using
+the base functions, abstracts away from this. Similarly,
+the user layer abstracts away from any interaction with
+SDL at all. And in fact, if the user uses the
+'user_function' in main then you only need the font file,
+the binary file and the dimensions of the data and you are
+completely abstracted away from how I have structured the
+data and built my program.
+
+There is also a linear structure to the code where:
+1. Binary data -> Array of codes (code_array)
+2. Array of codes -> Array of structs (ElemArr)
+3. Individual struct -> Individual print instructions
+4. Print Array.
+
+    |Bin->Code   |Code->Elem  |Elem->Prnt  |Prnt all
+____|____________|____________|____________|_______________
+User|argc_error  |NA          |NA          |NA
+____|____________|____________|____________|_______________
+Lib |code2int    |Elem_Init   |Elem_Draw   |ElemArr_Print
+____|____________|____________|____________|_______________
+Base|int2bin     |NA          |SDL_DrawRect|SDL_Init
+    |            |            |            |
+
+Thus I was able to plan in advance most of the major
+functions (examples included above) that I wanted to write
+and what arguments they would take and what outputs/effects
+they would have.
+
+This was crucial in the design process, for example, I
+decided to make the printing of the elements to depend
+purely on the information within the structure Elem, i.e.
+there would be no cross-checking as it is printing.
+
+Although this made printing simpler, it then required that
+after initially mapping the codes to the Elem structures
+I then need the Code->Elem stage to have additional clean-
+up to adjust for the double height thing etc.
+
+/* Types of testing approaches ***************************/
+
+There seem to me to be two main ways to test code.
+1. Make sure it works/produces the correct outputs
+2. Make sure if it fails it fails 'gracefully'
+
+The advantage of 1. is working code requires producing
+the correct outputs given the correct inputs. The
+advantage of 2. is that often code does not work,
+and careful testing, particularly of inputs and 'graceful'
+failing, can often make tracking down problems in the code
+much more efficient. Afterall, because functions are
+designed to be short, there is a high degree of
+interdependency and so one function's output is another's
+input.
+
+/* testing.c *********************************************/
+
+Although I have built 'graceful failing' into my functions,
+it was not my core testing approach. Instead, as previously
+mentioned I first built the base functions and tested
+them very thoroughly with a combination of SDL outputs and
+visually checking the outcome is correct and using asserts.
+
+testing.c is structured into two, very long, functions.
+testing_base, unsurprisingly, tests the base functions.
+testing_library, tests the library functions.
+
+As the code tests it first prints a description of the
+test (TEST: ). This is particularly, important for the
+visual testing where the user needs to look to check that
+the SDL output matches what should have been printed.
+
+WARNING: Some user input is required 1. click screen to
+test base_SDL_Events 2. to close the window after
+lib_ElemArr_Print. Also note that, the SDL with its memory
+leaks is quite memory intensive and there is a lot of code.
+My code runs at home with no problems, but on computers
+with less memory there may be issues (although it works
+on the University of Bristol lab computers)
+
+Testing this way, as I was writing the code, was really
+effective. When I had hacked my initial version together
+it was almost impossible to debug, because I had so many
+functions and I didn't know where the error was coming
+from.
+
+Some examples of how this testing-whilst-writing approach
+helped me debug include:
+1. base_int2bin function converts an integer into '1s' &
+   '0s' in a 6x1 matrix. However, my method saves the data
+   as 2^0, 2^1 ... 2^5 rather than typical binary fashion
+   2^5, 2^4,..., 2^0. Although, I ended up keeping it that
+   way by testing up front, and knowing about it I could
+   wrote my library sixel print functions correctly.
+2. lib_elem_DrawSixel function gave me a lot of problems.
+   In particular, I struggled with how to get the
+   separation correct. Initial versions kept the blocks
+   inside the sixel stuck together, but because I tested
+   the function after I wrote it I could adjust how I used
+   my SEPARATED_ADJ number to get the right output.
+3. Blastthrough gave me a lot of problems as well. My
+   my initial idea was to have a separate print_mode from
+   alphanumeric, separated and contiguous called
+   blastthrough however, playing around with my
+   lib_code2ElemArr and lib_ElemArr_Print functions in the
+   tests helped me figure out this wasn't a good strategy,
+   because if it went to blastthrough it would then
+   'forget' whether the graphics before were separated or
+   contiguous.
+
+/* Author ************************************************/
+
+Nicholas Drake
+University of Bristol
+MSc Computer Science
+C Assignment 2017-19
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/

@@ -1,0 +1,60 @@
+/*********************************************************/
+/* main.txt **********************************************/
+/*********************************************************/
+
+/* How to run the code ***********************************/
+
+In 'extension' directory:
+make all
+make run
+
+/* Extension *********************************************/
+
+This code is organised in 4 layers:
+1. Testing layer
+2. Extension layer
+3. Library layer
+4. Base layer
+
+The base and library layers are the same as before. The
+extension layer is where all the work happens. The parser
+parse_orfail is built on two layers of functions, grammar
+and parse functions.
+
+The structure is a recursive descent
+parser, where crucially I need to backtrack the pointer
+to the string every time the recursive code finds a
+'FALSE'.
+
+The parser is then used as the code control, if a command
+fails to parse then it is skipped but it does not finish
+the program.
+
+Instructions to print teletext are of two types:
+To print characters (or sixels) use square brackets
+e.g. [abcde]
+To issue commands use curly brackets with a colon in
+between e.g. {font_clr:blue}
+These commands can be put back to back. For example if you
+run the test file one of the example commands is
+{font_clr:red} [abcdefghijklmnopqrstuvwxyz] which
+successfully prints the alphabet to the screen.
+In the test file I also show the use of double height,
+contiguous sixels and separated sixels, and font colours
+background colours and graphics colours.
+
+/* More information **************************************/
+
+Please see 'testing.txt' for a detailed explanation of both
+the structure of the code and the coding process.
+
+/* Author ************************************************/
+
+Nicholas Drake
+University of Bristol
+MSc Computer Science
+C Assignment 2017-19
+
+/*********************************************************/
+/*********************************************************/
+/*********************************************************/
